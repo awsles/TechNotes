@@ -72,7 +72,7 @@ So far
 
 * https://github.com/awslabs/aws-multi-account-viewer 
 * https://www.nccgroup.trust/uk/about-us/newsroom-and-events/blogs/2018/may/aws-inventory-a-tool-for-mapping-aws-resources/
-* https://github.com/devops-israel/aws-inventory (dependant on (CORS)[https://enable-cors.org/] enablement for AWS services)
+* https://github.com/devops-israel/aws-inventory (dependant on [CORS](https://enable-cors.org/) enablement for AWS services)
 
 
 ---
