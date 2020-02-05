@@ -5,11 +5,9 @@ The brute force way is to navigate to every resource type (roughly 147) in every
 
 Alas, there are a few *tricks* that can help. In any of the cases below, you will need to have full read access
 to every resoource type in order to "see" them.
-Note that the built-in AWS **ReadOnlyAccess** policy does NOT have sufficient permission to see all resource types.
+Note that the built-in AWS **ReadOnlyAccess** policy does NOT have sufficient permission to see *all* resource types.
 
-### Work in Progress
-Note that this document is a work-in-progress. Contributions and corrected are welcomed!
-
+**NOTE:** This document is a *work in progress*. Comments and updates are welcomed!
 
 ## Billing Data / Cost Explorer
 The billing data lists everything you have and how much it costs, on a daily basis.
@@ -88,12 +86,13 @@ Some of the open source tools include:
 ## Other Cloud Providers
 In contrast, other cloud providers have provided more efficient solutions to resource enumeration.
 
-### Azure
+### Microsoft Azure
 A customer is able to see all resources across all their subscriptions in a single view in the Azure portal.
 There is even a "Resources" REST API (and PowerShell cmdlet) which will enumerate all resources across all subscriptions in a given subscription.
 More recently, Microsoft has added the Azure Resource Graph where kusto queries can be used to rapidly query all resources
 across all visible subscriptions in one go.
 
-### GCP
-TBD
+### Google CLoud Platform (GCP)
+All resources in Google CLoud Platform (GCP) are organized into a hierarchy, with each node (Organizations, Folders, Projects, and so forth) having a reference to its parent. This makes it easy to programmatically iterate trhough and enumerate all resources using 
+a single API. See [listing all reosurces](https://cloud.google.com/resource-manager/docs/listing-all-resources) for more information.
 
