@@ -68,7 +68,7 @@ Options for enumerating resources across multiple accounts are limited to 3rd pa
 
 
 ## 3rd Party Open Source Options
-So far
+Some of the open source tools include:
 
 * https://github.com/awslabs/aws-multi-account-viewer 
 * https://www.nccgroup.trust/uk/about-us/newsroom-and-events/blogs/2018/may/aws-inventory-a-tool-for-mapping-aws-resources/
