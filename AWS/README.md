@@ -9,6 +9,11 @@ Current tech notes include:
 * [Enumerating AWS Resources](https://github.com/lesterw1/TechNotes/blob/master/AWS/Enumerating%20AWS%20Resources.md)
 -- The challenges of enumerating all resources in an AWS account, and across multiple AWS accounts.
 
+* [AWS Policies and Roles](https://github.com/lesterw1/TechNotes/blob/master/AWS/AWS%20Policies%20and%20Roles.md)
+-- Some recommendations around AWS policy and role definitions and management.
+
+* [AWS Role Governance](https://github.com/lesterw1/TechNotes/blob/master/AWS/AWS%20Role%20Governance.md)
+-- A sample governance process for managing AWS policy documents and role definitions using a company internal Github.
 
 ## Articles
 In addition to tech notes, here are some articles:
