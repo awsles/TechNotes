@@ -81,6 +81,7 @@ So far
 * https://github.com/aws/aws-sdk-js/blob/master/SERVICES.md
 * https://stackoverflow.com/questions/44391817/is-there-a-way-to-list-all-resources-in-aws
 * https://forums.aws.amazon.com/thread.jspa?threadID=235322
+* https://github.com/lesterw1/AwsServices (generates a list of services)
 
 
 ---
