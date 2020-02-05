@@ -17,8 +17,8 @@ While the billing data provides a list of all resources, it does NOT include the
 But armed with the list of ARNs, it is easier to retrieve the details for each resource.
 The downside to this approach is that any resources created since the last billing day cycle won't appear.
 
-You can view the billing data in the AWS console (portal) using Cost Explorer at:
-
+You can view the billing data in the AWS console (portal) using [AWS Cost Explorer](https://aws.amazon.com/aws-cost-management/aws-cost-explorer/) at:
+TBD
 
 ## Tag Editor
 You can use the [Tag Editor](https://console.aws.amazon.com/resource-groups/tag-editor/find-resources)
