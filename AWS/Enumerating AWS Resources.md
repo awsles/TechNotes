@@ -3,7 +3,10 @@ One of the bigger challenges in AWS is enumerating resources.
 Believe it or not, unlike Azure, there is no single view of all resources in an AWS account.
 The brute force way is to navigate to every resource type (roughly 147) in every region (20-something).
 
-Alas, there are a few *tricks* that can help.
+Alas, there are a few *tricks* that can help. In any of the cases below, you will need to have full read access
+to every resoource type in order to "see" them.
+Note that the built-in AWS **ReadOnlyAccess** policy does NOT have sufficient permission to see all resource types.
+
 
 ## Billing Data / Cost Explorer
 The billing data lists everything you have and how much it costs, on a daily basis.
@@ -40,6 +43,7 @@ This includes how the resources are related to one another and how they were con
 past so that you can see how the configurations and relationships change over time.
 
 However, AWS Config only collects information about EC2/VPC-related resources, not everything in your AWS account.
+It does not cover services such as lambdas, SNS, SQS, etc.
 
 The AWS CLI can be done for each region and each resource type:
 ```
@@ -50,9 +54,10 @@ https://console.aws.amazon.com/config/home?region=us-east-1#/resource-listing
 
 Missing things like lambdas, SNS, SQS, etc.
 
-copybook
 
 
+## Multiple AWS Accounts
+Options for enumerating resources across multiple accounts are limited to 3rd party tools.
 
 
 ## 3rd Party Open Source Options
@@ -70,8 +75,7 @@ copybook
 * https://stackoverflow.com/questions/44391817/is-there-a-way-to-list-all-resources-in-aws
 * https://forums.aws.amazon.com/thread.jspa?threadID=235322
 
-Waggott, James <jwaggott@amazon.co.uk>  EXT Listing resources in AWS accounts
 
 ---
 # Microsoft Azure
-In comparison, a customer is able to see all resources across all their subscriptions in a single view.
+In contrast, a customer is able to see all resources across all their subscriptions in a single view in the Azure portal.
