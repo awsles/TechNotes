@@ -84,9 +84,13 @@ So far
 
 
 ---
-# Microsoft Azure
+## Other Cloud Providers
+
+### Azure
 In contrast, a customer is able to see all resources across all their subscriptions in a single view in the Azure portal.
 There is even a "Resources" REST API (and PowerShell cmdlet) which will enumerate all resources across all subscriptions in a given subscription.
 More recently, Microsoft has added the Azure Resource Graph where kusto queries can be used to rapidly query all resources
 across all visible subscriptions in one go! Hint hint AWS!
 
+### GCP
+TBD
