@@ -22,7 +22,7 @@ In addition to tech notes, here are some articles:
 In this article, I take a look at the security-related features of Azure and AWS and do a cursory comparison.
 Both platforms have evolved quite a bit since I published that article in February 2019. A full update will be forthcoming.
 
-## Additional Resources
+## Resources
 In addition to tech notes, below are some additional AWS-related resources:
 
 * [AWS Services & Actions](https://github.com/lesterw1/AwsServices)
