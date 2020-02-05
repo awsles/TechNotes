@@ -98,8 +98,97 @@ anything that looks like AWS may have created it.
 and attach it to the role. For example, you may not normally grant CDN permissions, but may wish to
 allow it as an exception.
 
+User roles (used for cloud interactive login) should have standardized role definitions (naming and permissions) across
+all AWS accounts, respectively. This serves to minimize the number of customized role
+definitions which have to be managed. It also allows for centralized management of the common user roles, complete
+with automation for pushing changes to such roles out to all AWS accounts and Azure subscriptions.
+
+It is important to note that the roles below relate to cloud management activities and are NOT
+specific to data access (although some roles will include a level of data access). Data access roles are
+outside the scope of this document. The policy documents associated are prefixed with "COMPANY".
+
+### General Roles
+Below are some roles that I typically like to deploy. But this will depend on the way business and engineering
+activities are conducted at your COMPANY.
+
+:white_check_mark: **Cloud Administrator** -- Provides full administrative access including user access management rights.
+
+:white_check_mark: **Reader** -- Provides read-only access to virtually all cloud configuration and many operating metrics.
+This goes beyond the AWS built-in **ReadOnlyAccess** policy.
+
+:white_check_mark: **Network Administrator** -- Provides administrative access to all networking capabilities and selected other
+administrative capabilities for use by the networking team. 
+
+:white_check_mark: **Firewall Operator** -- Provides administrative capability to all security groups, cloud network ACLs, and
+PaaS firewalls so that firewall rules may be managed. This is a subset of the Network Administrator capabilities.
+
+:white_check_mark: **Security Administrator** -- Provides administrative access to security functions for use by the COMPANY Security team.
+
+:white_check_mark: **Security Operator** -- Provides limited security operator access for use by COMPANY Security operations.
+
+:white_check_mark: **Service Administrator** -- Provides limited administrative access to resources, allowing for starting and
+stopping of VMs, limited reconfiguration capability, tag management, and more. Does not permit user access management.
+
+:white_check_mark: **Troubleshooter** -- Provides full read access to configuration data, service metrics, and most logs.
+Also enables some very limited operational actions such as VM start/stop, volume snapshotting, and diagnostics configuring.
+Typically, this is the follow-on role for developers in the Pre-Production and production environments. It is also suitable for assignment to quality assurance / test personnel.
 
 
+### Optional Roles
+Lastly, there are a number of roles which are optional, and may only be suitable for certain applications
+(for example, the "Data Scientist" role).
+
+:black_square_button: **Full Stack Developer** -- Allows access to most (but not all) network-related cloud services
+such as load balancers, firewalls, subnets, etc. Specifically excluded are VPC/VNET creation, VPNs, Express Networking, CDNs,
+and route table management. This role allows selected developers to prototype new services and define firewall rules in a
+more agile fashion. Developer are expected to follow COMPANY network design patterns and engage the appropriate team(s)
+for any deviations thereof.
+
+:black_square_button: **Data Scientist** -- Allows creatation and running of queries on Hadoop, MapReduce, and data lakes
+for the purposes of big data analytics.
+
+:black_square_button: **User Access Admin** -- Allows configuring of user access permissions within the respective
+AWS account or Azure subscription. This role is currently only created if it is required for a specific account / subscription. Use this role if your IAM activities are really segregated.
+
+
+### Data Access Roles
+The aforementioned roles relate to cloud management plane permissions (although some management permissions have a degree
+of data tier access). Data plane roles are typically defined within each specific service. For example, Microsoft SQL
+and AWS RDS both have roles and permissions which are defined within the service itself.
+The management and governance for such roles is outside the scope.
+
+### Build Pipeline User
+Every deployment should have a build pipeline user that is defined in DevTest, staging, and production.
+The role allows the build pipeline (such as Azure DevOps, Teraform, etc.) tha ability to build and deploy services.
+The build pipeline user is a local AWS user account which typically has a lot of privileges, including the ability
+to create users, roles, and policies.
+
+In production environment as an added security measure, the pipeline role can be temporarily disabled by simply removing the authorization credential. This has the net effect of ensuring that no one runs a new pipeline or inadvertently accesses the role.
+When it is necessary to run the pipeline to deploy into production again, a new credential can be generated
+and configured into the deployment tool.
+
+#### Azure DevOps
+For Azure DevOps, create a policy named "*AzureDevOps-Pipeline-Policy*" with appropriate permissions and then attach it to
+a new user named "*AzureDevOps-Pipeline*". Including a prefix or suffix with the environment type is NOT recommended.
+
+#### Terraform
+For Terraform, create a policy named "*Terraform-Pipeline-Policy*" with appropriate permissions and then attach it to
+a new user named "*Terraform-Pipeline*". Including a prefix or suffix with the environment type is NOT recommended.
+
+Teraform can be used to deploy AWS policy, roles, and users.
+See: https://www.terraform.io/docs/providers/aws/guides/iam-policy-documents.html
+
+#### Jenkins
+For Jenkins, create a policy named "*Jenkins-Pipeline-Policy*" with appropriate permissions and then attach it to
+a new user named "*Jenkins-Pipeline*". Including a prefix or suffix with the environment type is NOT recommended.
+
+Jenkins can use AWS CodeDeploy to deploy policies, roles, and users.
+
+### Built-In Roles
+Both AWS and Azure have a number of built-in RBAC roles and policies. In AWS, some of the built-in policies are used as part of the COMPANY role definitions. For example, the *COMPANYNetworkAdministrator* role is created using the NetworkAdministrator built-in policy, combined with the COMPANYNetworkAdministrator and the COMPANYReader policies. In Azure, the RBAC permissions are incorporated directly into the role definitions. For example, the Azure Reader role is directly assigned to users.
+
+
+---
 ## Useful Resources
 Below are some useful tools and resources which may help in securing role access in your AWS accounts.
 
