@@ -57,16 +57,22 @@ The console page may be accessed at:
 https://console.aws.amazon.com/config/home?region=us-east-1#/resource-listing
 
 
+## CloudWatch
+Another approach might be to use cloudwatch events over time to construct a view of
+all resources. A lambda function could be tied to the events which then manages the list of resources
+along with the latest configuration in a Neptune or RDS database.  Food for thought...
+
+
 ## Multiple AWS Accounts
 Options for enumerating resources across multiple accounts are limited to 3rd party tools.
 
 
 ## 3rd Party Open Source Options
+So far
 
 * https://github.com/awslabs/aws-multi-account-viewer 
 * https://www.nccgroup.trust/uk/about-us/newsroom-and-events/blogs/2018/may/aws-inventory-a-tool-for-mapping-aws-resources/
-* https://github.com/devops-israel/aws-inventory
-* https://enable-cors.org/
+* https://github.com/devops-israel/aws-inventory (dependant on (CORS)[https://enable-cors.org/] enablement for AWS services)
 
 
 ---
@@ -80,3 +86,7 @@ Options for enumerating resources across multiple accounts are limited to 3rd pa
 ---
 # Microsoft Azure
 In contrast, a customer is able to see all resources across all their subscriptions in a single view in the Azure portal.
+There is even a "Resources" REST API (and PowerShell cmdlet) which will enumerate all resources across all subscriptions in a given subscription.
+More recently, Microsoft has added the Azure Resource Graph where kusto queries can be used to rapidly query all resources
+across all visible subscriptions in one go! Hint hint AWS!
+
