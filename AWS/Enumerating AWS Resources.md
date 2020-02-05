@@ -7,6 +7,9 @@ Alas, there are a few *tricks* that can help. In any of the cases below, you wil
 to every resoource type in order to "see" them.
 Note that the built-in AWS **ReadOnlyAccess** policy does NOT have sufficient permission to see all resource types.
 
+### Work in Progress
+Note that this document is a work-in-progress. Contributions and corrected are welcomed!
+
 
 ## Billing Data / Cost Explorer
 The billing data lists everything you have and how much it costs, on a daily basis.
@@ -50,10 +53,8 @@ The AWS CLI can be done for each region and each resource type:
 $ aws configservice list-discovered-resources
 ```
 
+The console page may be accessed at:
 https://console.aws.amazon.com/config/home?region=us-east-1#/resource-listing
-
-Missing things like lambdas, SNS, SQS, etc.
-
 
 
 ## Multiple AWS Accounts
