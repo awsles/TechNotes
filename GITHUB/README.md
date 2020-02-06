@@ -6,7 +6,9 @@ An area for tech notes relating to to github, including github pages.
 ## Tech Notes
 Current tech notes include:
 
-* TBD
+* [Getting started with Github pages](https://github.com/lesterw1/TechNotes/blob/master/GITHUB/Getting_started_with_github_pages.md)
+-- Quick steps to get up and running with github pages. Also includes some useful references and examples.
+
 
 ## Resources
 In addition to tech notes, below are some additional AWS-related resources:
