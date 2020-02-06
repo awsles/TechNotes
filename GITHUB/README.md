@@ -17,6 +17,9 @@ In addition to tech notes, below are some additional AWS-related resources:
 * [Another Markdown Cheat Sheet](https://www.markdownguide.org/basic-syntax)
 -- This one is a bit more pleasing on the eye.
 
+* [Github-flavored Markdown](https://help.github.com/en/github/writing-on-github)
+-- GitHub combines a syntax for formatting text called GitHub Flavored Markdown with a few unique writing features.
+
 * [Github Emojis](https://emojipedia.org/github/)
 -- GitHub uses shortcodes for emoji insertion which replace the code with the native emoji character.
 The syntax is :*emojiname*: For example, the text `:Octocat:` generates this: :octocat:.
