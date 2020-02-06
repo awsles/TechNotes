@@ -16,6 +16,6 @@ In addition to tech notes, below are some additional AWS-related resources:
 
 * [Github Emojis](https://emojipedia.org/github/)
 -- GitHub uses shortcodes for emoji insertion which replace the code with the native emoji character.
-The syntax is :*emojiname*: For example, the text ":*Octocat*:" generates this: :octocat:.
+The syntax is :*emojiname*: For example, the text `:Octocat:` generates this: :octocat:.
 The current list of github emojis can be returned via [REST API](https://developer.github.com/v3/emojis/).
 An almost-complete list may be found [here](https://gist.github.com/rxaviers/7360908).
