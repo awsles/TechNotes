@@ -2,7 +2,8 @@
 In some circumstances, you may wish to use github via PowerShell such as in an Azure runbook where
 the `$git` command may not be available.
 
-https://www.powershellgallery.com/packages/PowerShellForGitHub/
+* Install from: https://www.powershellgallery.com/packages/PowerShellForGitHub/
+* Source code: https://github.com/Microsoft/PowerShellForGitHub
 
 | Cmdlet | Synopsis |
 | --- | --- |
