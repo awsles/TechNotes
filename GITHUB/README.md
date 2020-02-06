@@ -28,3 +28,6 @@ Also see the blog entry: [A formal spec for GitHub Flavored Markdown](https://gi
 The syntax is :*emojiname*: For example, the text `:Octocat:` generates this: :octocat:.
 The current list of github emojis can be returned via [REST API](https://developer.github.com/v3/emojis/).
 An almost-complete list may be found [here](https://gist.github.com/rxaviers/7360908).
+
+* [Branching Explained (video)](https://www.youtube.com/watch?v=uR-9NGrpU-c)
+-- Code branching explained in 8 minutes.
