@@ -4,7 +4,7 @@ layout: default
 
 # Docs
 This branch contains the HTML pages which are published using 
-[GitHub Pages](https://pages.github.com) to [https://lesterw1.github.io/repository](https://lesterw1.github.io/repository).
+[GitHub Pages](https://pages.github.com) to [https://lesterw1.github.io/TechNotes](https://lesterw1.github.io/TechNotes).
 
 The current theme is [Slate](https://github.com/pages-themes/slate).
 
