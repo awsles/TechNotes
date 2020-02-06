@@ -4,6 +4,12 @@ A repository for technical notes and thoughts.
 This area contains technical notes relating to cloud, automation, and more 
 for both Azure and AWS.
 
+## Published Pages
+[Github Pages](https://pages.github.com) is being used to publish some content.
+This is still a *work in progress*...
+
+https://lesterw1.github.io/TechNotes/
+
 
 ## Additional Resources
 Below are selected AWS-related security and other articles.
