@@ -1,1 +1,6 @@
 theme: jekyll-theme-slate
+title: Cloud Tech Notes
+description: A collection of technology and how-to notes for AWS and Azure cloud.
+
+plugins:
+  - jemoji
