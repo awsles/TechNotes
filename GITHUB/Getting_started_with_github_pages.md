@@ -18,8 +18,8 @@ I chose to use a /docs folder as my publishing branch so that I could
 keep other stuff in the repository without having it automatically published. 
 If you want to use the /docs folder, then you must create this first and put a simple README.md inside.
 
-2) [Enable Pages](https://pages.github.com/)
--- Follow the steps here by scrolling down the page and following the steps.
+2) **Enable Pages**
+-- Follow the steps [here](https://pages.github.com/) by scrolling down the page and following the steps.
 In a nutshell, you go to the **Settings** area of your repository, scroll down and select your Source
 as decided in step 1 above. And then choose a theme to get you started.
 
