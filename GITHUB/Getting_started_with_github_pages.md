@@ -53,6 +53,9 @@ Note that the authoring pack is NOT required in order to author content. However
 ## Resources
 In addition to tech notes, below are some additional related resources:
 
+* [Creating and Hosting a Personal Site on GitHub](http://jmcglone.com/guides/github-pages/)
+-- A guide to help GitHub beginners get up and running with GitHub Pages and Jekyll in an afternoon.
+
 * [About GitHub Pages and Jekyll](https://help.github.com/en/github/working-with-github-pages/adding-a-theme-to-your-github-pages-site-using-jekyll)
 -- One of the 1st steps is to add a theme to the pages. Github pages provides about a dozen built-in themes.
 
@@ -68,4 +71,7 @@ This is useful for certain extensions such as using
 
 * [Github Pages Examples](https://github.com/collections/github-pages-examples)
 -- A small collection of sample pages.
+
+* [Jekyll Cheat Sheet](https://learn.cloudcannon.com/jekyll-cheat-sheet/)
+--  Jekyll variables and filters.
 
