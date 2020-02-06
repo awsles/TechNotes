@@ -39,6 +39,17 @@ See [here](https://help.github.com/en/github/working-with-github-pages/about-cus
 for more information.
 
 
+## Microsoft Documentation
+Microsoft uses GitHub as the source for virtually all of their documentation. They have an authoring pack which plugs into
+Visual Studio Code which has a variety of tools in it. While this authorizing pack is tailored for Microsoft pages,
+the tools within may be useful for document authoring. I am uncertain if they use GitHub pages, but they may use some
+variation of Jekyll.
+
+See: https://marketplace.visualstudio.com/items?itemName=docsmsft.docs-authoring-pack. 
+
+Note that the authoring pack is NOT required in order to author content. However, it may be useful.
+
+
 ## Resources
 In addition to tech notes, below are some additional related resources:
 
@@ -54,3 +65,7 @@ This is useful for certain extensions such as using
 
 * [Jemoji](https://github.com/github/gemoji)
 -- Use github emojis in your documentation.
+
+* [Github Pages Examples](https://github.com/collections/github-pages-examples)
+-- A small collection of sample pages.
+
