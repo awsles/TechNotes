@@ -21,6 +21,7 @@ In addition to tech notes, below are some additional AWS-related resources:
 
 * [Github-flavored Markdown](https://help.github.com/en/github/writing-on-github)
 -- GitHub combines a syntax for formatting text called GitHub Flavored Markdown with a few unique writing features.
+Also see the blog entry: [A formal spec for GitHub Flavored Markdown](https://github.blog/2017-03-14-a-formal-spec-for-github-markdown/).
 
 * [Github Emojis](https://emojipedia.org/github/)
 -- GitHub uses shortcodes for emoji insertion which replace the code with the native emoji character.
