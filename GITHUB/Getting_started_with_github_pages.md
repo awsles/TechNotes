@@ -33,6 +33,11 @@ as decided in step 1 above. And then choose a theme to get you started.
 I like to do this so that I have a handly markdown cheat sheet.
 You can copy the raw code from [here](https://raw.githubusercontent.com/pages-themes/slate/master/index.md).
 
+5) **Set up a custom domain name**
+-- You may wish to set up a custom domain name rather than use the github.io URL.
+See [here](https://help.github.com/en/github/working-with-github-pages/about-custom-domains-and-github-pages)
+for more information.
+
 
 ## Resources
 In addition to tech notes, below are some additional related resources:
