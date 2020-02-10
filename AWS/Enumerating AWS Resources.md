@@ -1,25 +1,30 @@
 # Enumerating AWS Resources
 One of the bigger challenges in AWS is enumerating resources.
-Believe it or not, unlike Azure, there is no single view of all resources in an AWS account.
-The brute force way is to navigate to every resource type (roughly 147) in every region (20-something).
+Believe it or not, there is NO WAY to easily view ALL resources in an AWS account (!).
+Other cloud providers provide such an "all resources" view. But in AWS, you have to navigate to
+virtually every resource type (roughly 147) in every region (20-something) and look. Ouch!
 
-Alas, there are a few *tricks* that can help. In any of the cases below, you will need to have full read access
-to every resoource type in order to "see" them.
+Alas, there are a few *tricks* that can help soften the impact of this odd 
+and frustrating limitation.
+In any of the solutions below, you will need to have full read access
+to *all* resoource type in order to "see" them.
 Note that the built-in AWS **ReadOnlyAccess** policy does NOT have sufficient permission to see *all* resource types.
 
-**NOTE:** This document is a *work in progress*. Comments and updates are welcomed!
+**NOTE:** This document is a *work in progress*. Are you aware of any other approaches?
+There are some 3rd party solutions which will provide a view. Comments and suggestions are welcomed!
 
 ## Billing Data / Cost Explorer
-The billing data lists everything you have and how much it costs, on a daily basis.
+The one definitiove source of truth is the billing data.
+It lists everything that you pay for, and how much each item costs on a daily basis.
 While the billing data provides a list of all resources, it does NOT include the detailed configuration of each.
 But armed with the list of ARNs, it is easier to retrieve the details for each resource.
-The downside to this approach is that any resources created since the last billing day cycle won't appear.
+The downside to this approach is that any resources created since the last billing day cycle won't appear
+(generally 24 hours).
 
-You can view the billing data in the AWS console (portal) using [AWS Cost Explorer](https://aws.amazon.com/aws-cost-management/aws-cost-explorer/) at:
-TBD
+You can view the billing data in the AWS console (portal) using [AWS Cost Explorer](https://aws.amazon.com/aws-cost-management/aws-cost-explorer/).
 
 ## Tag Editor
-You can use the [Tag Editor](https://console.aws.amazon.com/resource-groups/tag-editor/find-resources)
+Another approach is to use the [Tag Editor](https://console.aws.amazon.com/resource-groups/tag-editor/find-resources)
 to find resources.
 
 https://docs.aws.amazon.com/ARG/latest/userguide/tag-editor.html
@@ -37,9 +42,9 @@ $ aws resourcegroupstaggingapi get-resources --region region_name
 
 
 ## AWS Config
-
-[AWS Config](http://docs.aws.amazon.com/config/latest/developerguide/WhatIsConfig.html)
-provides a detailed view of the configuration of AWS resources in each AWS account.
+Yet another approach is 
+[AWS Config](http://docs.aws.amazon.com/config/latest/developerguide/WhatIsConfig.html),
+which provides a detailed view of the configuration of AWS resources in each AWS account.
 This includes how the resources are related to one another and how they were configured in the
 past so that you can see how the configurations and relationships change over time.
 
@@ -50,7 +55,8 @@ The AWS CLI can be done for each region and each resource type:
 ```
 $ aws configservice list-discovered-resources
 ```
-
+Drawbacks here is that you must enable AWS config and it then only captures resources as and when they change.
+AWS config  can also be quite expensive.
 The console page may be accessed at:
 https://console.aws.amazon.com/config/home?region=us-east-1#/resource-listing
 
@@ -62,7 +68,8 @@ along with the latest configuration in a Neptune or RDS database.  Food for thou
 
 
 ## Multiple AWS Accounts
-Options for enumerating resources across multiple accounts are limited to 3rd party tools.
+Options for enumerating resources across multiple accounts are limited to 3rd party tools,
+some free / open source; in additon to paid solutions.
 
 
 ## 3rd Party Open Source Options
@@ -84,15 +91,16 @@ Some of the open source tools include:
 
 ---
 ## Other Cloud Providers
-In contrast, other cloud providers have provided more efficient solutions to resource enumeration.
+In comparison, other cloud providers have provided more efficient solutions to resource enumeration.
+HINT TO AWS: Provide an enumerate reosurce API please!
 
 ### Microsoft Azure
 A customer is able to see all resources across all their subscriptions in a single view in the Azure portal.
 There is even a "Resources" REST API (and PowerShell cmdlet) which will enumerate all resources across all subscriptions in a given subscription.
-More recently, Microsoft has added the Azure Resource Graph where kusto queries can be used to rapidly query all resources
-across all visible subscriptions in one go.
+More recently, Microsoft has added the **Azure Resource Graph** where kusto queries can be used to rapidly query all resources
+across all visible subscriptions in one go (!!). This is VERY impressive and very fast.
 
-### Google CLoud Platform (GCP)
-All resources in Google CLoud Platform (GCP) are organized into a hierarchy, with each node (Organizations, Folders, Projects, and so forth) having a reference to its parent. This makes it easy to programmatically iterate trhough and enumerate all resources using 
+### Google Cloud Platform (GCP)
+All resources in Google Cloud Platform (GCP) are organized into a hierarchy, with each node (Organizations, Folders, Projects, and so forth) having a reference to its parent. This makes it easy to programmatically iterate trhough and enumerate all resources using 
 a single API. See [listing all reosurces](https://cloud.google.com/resource-manager/docs/listing-all-resources) for more information.
 
