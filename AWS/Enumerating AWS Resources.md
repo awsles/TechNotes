@@ -104,3 +104,9 @@ across all visible subscriptions in one go (!!). This is VERY impressive and ver
 All resources in Google Cloud Platform (GCP) are organized into a hierarchy, with each node (Organizations, Folders, Projects, and so forth) having a reference to its parent. This makes it easy to programmatically iterate trhough and enumerate all resources using 
 a single API. See [listing all reosurces](https://cloud.google.com/resource-manager/docs/listing-all-resources) for more information.
 
+---
+## Next Steps
+I would like to see a solution that has the ability to rapidly query all AWS resources across all accounts using a
+query solution similar to that offered by Microsoft's Azure Resource Explorer.
+
+I am tempted to write some scripts which: (a) enumerates all the AWS resources; and then (b) hooks into AWS CloudWatch to capture resource changes; and then (c) pushes the current AWS resource configuration into [Azure Data Explorer](https://azure.microsoft.com/en-us/services/data-explorer/). This would allow Kusto to be used to query the respective resources. Maybe someday...
