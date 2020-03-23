@@ -8,9 +8,9 @@ for both Azure and AWS.
 The tech notes are organized loosely by cloud provider or other SaaS service.
 Currently, there is:
 
-* [AWS](https://github.com/lesterw1/TechNotes/AWS/) -- Amazon Web Services tips, notes, and how-to's.
-* [Azure](https://github.com/lesterw1/TechNotes/AZURE/) -- Microsoft Azure and Office 365 tips, notes, and how-to's.
-* [Github](https://github.com/lesterw1/TechNotes/GITHUB/) -- Github Pages tips, notes, and how-to's.
+* [AWS](https://github.com/lesterw1/TechNotes/tree/master/AWS/) -- Amazon Web Services tips, notes, and how-to's.
+* [Azure](https://github.com/lesterw1/TechNotes/tree/master/AZURE/) -- Microsoft Azure and Office 365 tips, notes, and how-to's.
+* [Github](https://github.com/lesterw1/TechNotes/tree/master/GITHUB/) -- Github Pages tips, notes, and how-to's.
 
 
 ## Published Pages
