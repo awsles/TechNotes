@@ -22,12 +22,16 @@ Resources
 ```
 Resources 
 | where type =~ 'Microsoft.Compute/virtualMachines' 
+| extend ServiceOwner = tostring(tags['Service Owner'])
+| extend ServiceName = tostring(tags['Service Name'])
+| extend CostCodeID = tostring(tags['Cost Code ID'])
 | join kind=leftouter (ResourceContainers | where type=~'microsoft.resources/subscriptions' 
 	| project SubName=name, subscriptionId) on subscriptionId 
 | project subscriptionId, name, resourceGroup, location,
 	vmSize = tostring(properties.hardwareProfile.vmSize), 
 	osType = tostring(properties.storageProfile.osDisk.osType),
-	hostId = tostring(properties.host.id), tags, id
+	hostId = tostring(properties.host.id), tags, id,
+	ServiceOwner,ServiceName,CostCodeID
 ```
 
 	
@@ -303,6 +307,37 @@ Do
 Until ($r.Count -lt 1000)
 ```
 
+## List all Resource Groups with Subordinate Cost Code ID
+```
+resourcecontainers
+ | where type == "microsoft.resources/subscriptions/resourcegroups"
+ | extend ServiceOwner = tostring(tags["Service Owner"])
+ | extend ServiceName = tostring(tags["Service Name"])
+ | extend CostCodeID = tostring(tags["Cost Code ID"])
+| join kind=inner (Resources | where tags contains "Cost Code ID" | extend SubCostCodeID = tostring(tags["Cost Code ID"]) | project resourceGroup,SubordinateTags=tags,SubCostCodeID) on resourceGroup 
+| join kind=leftouter (ResourceContainers | where type=~'microsoft.resources/subscriptions' 
+	| project SubName=name, subscriptionId) on subscriptionId
+| project subscriptionId, SubName, resourceGroup, location, CostCodeID, ServiceOwner, ServiceName, tags,SubordinateTags, SubCostCodeID
+```
+
+## List all Resources WITHOUT 'Cost Code ID' tag
+```
+Resources
+  | where tags !contains "Cost Code ID" 
+| join kind=leftouter (ResourceContainers | where type=~'microsoft.resources/subscriptions' 
+	| project SubName=name, subscriptionId) on subscriptionId
+| project subscriptionId, SubName, name, resourceGroup, location, tags, type
+```
+
+
+---
+## Using PowerShell
+
+```
+$q = "YOUR_KUSTO_QUERY"
+$Results = Search-AzGraph -query $q -First 5000 ; write-host "$($Results.Count) entries"
+$Results | Out-GridView  # Or Export-CSV
+```
 
 ---
 ## References
