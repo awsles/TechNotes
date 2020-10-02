@@ -1,4 +1,5 @@
 # Kusto Graph Explorer Queries
+The Resource Graph queries can be done through PowerShell or via the Azure Portal under "Resource Graph Explorer".
 
 
 ### LIST ALL SUBSCRIPTIONS ###
@@ -17,6 +18,124 @@ Resources
 | limit 25
 ```
 
+### LIST ALL NICs with Public and Private IP addresses along with their associated VM and subscription
+```
+Resources
+| where type =~ "microsoft.network/networkinterfaces"
+and properties.ipConfigurations[0[.properties.privateIPAddress =~ "10.71.2.2"
+| extend privateIPType = tostring(properties.ipCOnfigurations[0].properties["privateIPAllocationMethod2])
+| extend privateIP = tostring(properties.ipConfigurations[0].properties["privateIPAddress"])
+| extend publicIP = tostring(properties.ipConfigurations[0].properties["publicIPAddress"])
+| extend subnet = tostring(properties.ipConfigurations[0].properties.subnet["id"])
+```
+
+### List all devices with 2 or more IP addresses
+```
+Resources  
+| where type startswith 'microsoft.network' and isnotempty(properties.ipConfigurations[1])
+| extend ipCount = array_length(properties.ipConfigurations)
+| extend privateIPType = tostring(properties.ipConfigurations[0].properties["privateIPAllocationMethod"])
+| extend privateIP = tostring(properties.ipConfigurations[0].properties["privateIPAddress"])
+| extend privateIPType2 = tostring(properties.ipConfigurations[1].properties["privateIPAllocationMethod"])
+| extend privateIP2 = tostring(properties.ipConfigurations[1].properties["privateIPAddress"])
+| extend privateIPType3 = tostring(properties.ipConfigurations[2].properties["privateIPAllocationMethod"])
+| extend privateIP3 = tostring(properties.ipConfigurations[2].properties["privateIPAddress"])
+```
+
+
+### List Network Interfaces
+```
+Resources
+| where type =~ "microsoft.network/networkinterfaces"
+| extend ipCount = array_length(properties.ipConfigurations)
+| extend privateIPType = tostring(properties.ipConfigurations[0].properties["privateIPAllocationMethod"])
+| extend privateIP = tostring(properties.ipConfigurations[0].properties["privateIPAddress"])
+| extend publicIP = tostring(properties.ipConfigurations[0].properties["publicIPAddress"])
+| extend subnet = tostring(properties.ipConfigurations[0].properties.subnet["id"])
+```
+
+### List FQDNs
+This is usually just database servers.
+```
+Resources
+| where isnotempty(properties.fullyQualifiedDomainName)
+| extend FQDN = tostring(properties.fullyQualifiedDomainName)
+```
+
+### List Public IP Addresses
+```
+Resources  
+| where type contains 'publicIPAddresses' and isnotempty(properties.ipAddress)
+| extend publicIP = tostring(properties.ipAddress) 
+```
+
+
+
+### Splits IP configurations into a single row per entry
+```
+Resources
+| where type =~ "microsoft.network/networkinterfaces" and isnotempty(properties.ipConfigurations[1])
+| mv-expand x = properties.ipConfigurations
+```
+
+
+
+### Find by IP address
+```
+Resources
+| where type =~ "microsoft.network/networkinterfaces" and isnotempty(properties.ipConfigurations)
+| mv-expand ipConfiguration = properties.ipConfigurations
+| where ipConfiguration.properties.privateIPAddress =~ "10.64.193.86"
+| extend privateIPType = tostring(ipConfiguration.properties.privateIPAllocationMethod)
+| extend privateIP = tostring(ipConfiguration.properties.privateIPAddress)
+| extend publicIPid = tostring(ipConfiguration.properties.publicIPAddress.id)
+| join kind=leftouter (Resources | where type =~ "microsoft.network/publicipaddresses"
+    | extend publicIPaddr = tostring(properties.ipAddress)
+    | project publicIPid=id, publicIPaddr) on publicIPid
+```
+
+
+
+### List Azure Bastion Hosts with IP Addresses
+```
+Resources
+| where type =~ "microsoft.network/networkinterfaces" and isnotempty(properties.ipConfigurations)
+| mv-expand ipConfiguration = properties.ipConfigurations
+| where ipConfiguration.properties.privateIPAddress startswith "10.68.193."
+| extend privateIPType = tostring(ipConfiguration.properties.privateIPAllocationMethod)
+| extend privateIP = tostring(ipConfiguration.properties.privateIPAddress)
+| extend publicIPid = tostring(ipConfiguration.properties.publicIPAddress.id)
+| join kind=leftouter (ResourceContainers | where type =~ 'microsoft.resources/subscriptions'
+    | project SubscriptionName=name, subscriptionId) on subscriptionId
+| join kind=leftouter (Resources | where type =~ "microsoft.network/publicipaddresses"
+    | extend publicIPaddr = tostring(properties.ipAddress)
+    | project publicIPid=id, publicIPaddr) on publicIPid
+| project privateIP, privateIPType,publicIPaddr,name,type,location,resourceGroup,tags,id,publicIPid
+| sort by privateIP asc
+```
+
+
+### List Virtuan Networks (VNets) with IP addresses
+This is crude as I need to way to count and join all instances
+```
+Resources
+| where type =~ "microsoft.network/virtualnetworks"
+| extend subnets = tostring(properties["subnets"])
+| extend prefixCount = array_length(properties.subnets)
+| extend ip1 = tostring(properties.subnets[0].properties.addressPrefix)
+| extend ip2 = tostring(properties.subnets[1].properties.addressPrefix)
+| extend ip3 = tostring(properties.subnets[2].properties.addressPrefix)
+| extend ip4 = tostring(properties.subnets[3].properties.addressPrefix)
+| extend ip5 = tostring(properties.subnets[4].properties.addressPrefix)
+```
+
+### List all resources by Public IP Address
+A shame there isn't a private IP address equivalent...
+```
+Resources
+| where type =~ "microsoft.network/publicipaddresses"
+| extend ipAddress = tostring(properties.ipAddress)
+```
 
 ### LIST ALL VMs (joined with subscription name) ###
 ```
@@ -327,6 +446,18 @@ Resources
 | join kind=leftouter (ResourceContainers | where type=~'microsoft.resources/subscriptions' 
 	| project SubName=name, subscriptionId) on subscriptionId
 | project subscriptionId, SubName, name, resourceGroup, location, tags, type
+```
+
+## mv-expand
+
+https://stackoverflow.com/questions/56159424/how-do-i-iterate-through-array-in-kusto
+
+https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/mvexpandoperator
+
+```
+ where type =~ "microsoft.network/networksecuritygroups"
+| mv-expand rules = properties.defaultSecurityRules
+| where rules.properties.destinationAddressPrefix =~ "*"
 ```
 
 
