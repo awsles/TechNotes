@@ -80,7 +80,7 @@ Resources
 
 
 
-### Find by IP address
+### Find Resource by IP address
 ```
 Resources
 | where type =~ "microsoft.network/networkinterfaces" and isnotempty(properties.ipConfigurations)
@@ -93,6 +93,14 @@ Resources
     | extend publicIPaddr = tostring(properties.ipAddress)
     | project publicIPid=id, publicIPaddr) on publicIPid
 ```
+
+### Find VM given its network interface ID
+$KustoFindVMbyInterfaceID = 'Resources
+| where type =~ "microsoft.compute/virtualmachines" 
+| extend networkProfile = tostring(properties.networkProfile)
+| extend computerName = properties.osProfile.computerName
+| mv-expand networkInterfaces = properties.networkProfile.networkInterfaces
+| where networkInterfaces.id =~ "%%ID%%"'
 
 
 
