@@ -1,5 +1,6 @@
 # Kusto Graph Explorer Queries
 The Resource Graph queries can be done through PowerShell or via the Azure Portal under "Resource Graph Explorer".
+See also: https://docs.microsoft.com/en-us/azure/governance/resource-graph/samples/starter?tabs=azure-cli
 
 
 ### LIST ALL SUBSCRIPTIONS ###
@@ -18,16 +19,64 @@ Resources
 | limit 25
 ```
 
-### LIST ALL NICs with Public and Private IP addresses along with their associated VM and subscription
+### List VMs with detail (excluding IP info)
 ```
 Resources
-| where type =~ "microsoft.network/networkinterfaces"
-and properties.ipConfigurations[0[.properties.privateIPAddress =~ "10.71.2.2"
-| extend privateIPType = tostring(properties.ipCOnfigurations[0].properties["privateIPAllocationMethod2])
-| extend privateIP = tostring(properties.ipConfigurations[0].properties["privateIPAddress"])
-| extend publicIP = tostring(properties.ipConfigurations[0].properties["publicIPAddress"])
-| extend subnet = tostring(properties.ipConfigurations[0].properties.subnet["id"])
+| where type == "microsoft.compute/virtualmachines" and isnotempty(properties.networkProfile.networkInterfaces)
+| extend vmSize = tostring(properties.hardwareProfile.vmSize)
+| extend osType = tostring(properties.storageProfile.osDisk.osType)
+| extend nicId = properties.networkProfile.networkInterfaces[0].id
+| join kind=leftouter (ResourceContainers | where type=~'microsoft.resources/subscriptions' 
+	| project subscriptionName=name, subscriptionId) on subscriptionId 
+| project name, resourceGroup, subscriptionName, location, osType, privateIP, publicIP, vmSize, tags, id
 ```
+
+### List VMs with detail (including IP info)
+Note that resource graph is NOT always up to date with dynamically assigned public IP addresses.
+A VM can be running for quite a long time before the public IP address displays in resource graph.
+
+```
+Resources
+| where type == "microsoft.compute/virtualmachines" and isnotempty(properties.networkProfile.networkInterfaces)
+| extend vmSize = tostring(properties.hardwareProfile.vmSize)
+| extend osType = tostring(properties.storageProfile.osDisk.osType)
+| extend nicId = tostring(properties.networkProfile.networkInterfaces[0].id)
+| extend vmProperties = tostring(properties)
+| join kind=leftouter (Resources
+	| where type =~ "microsoft.network/networkinterfaces" 
+	| extend privateIP = tostring(properties.ipConfigurations[0].properties["privateIPAddress"])
+	| extend pubId = tostring(properties.ipConfigurations[0].properties.publicIPAddress.id)
+	| extend subnetId = tostring(properties.ipConfigurations[0].properties.subnet.id)
+	| join kind=leftouter (Resources | where type =~ "microsoft.network/publicipaddresses"
+		| extend fqdn = properties.dnsSettings.fqdn
+		| extend publicIP = tostring(properties.ipAddress) // May not be up to date...
+		| project pubId=id, publicIP, fqdn, pubIpProperties=properties) on pubId
+	| project nicId=id, nicName=name, privateIP, publicIP, fqdn, pubId, nicProperties=properties, pubIpProperties) on nicId
+| join kind=leftouter (ResourceContainers | where type=~'microsoft.resources/subscriptions' 
+	| project subscriptionName=name, subscriptionId) on subscriptionId 
+| project name, resourceGroup, subscriptionName, location, osType, vmSize, nicName, privateIP, publicIP, fqdn, nicProperties, pubIpProperties, vmProperties, id
+```
+
+
+### LIST ALL NICs with Public and Private IP addresses abd FQDNs
+Note that resource graph is NOT always up to date with dynamically assigned public IP addresses.
+A VM can be running for quite a long time before the public IP address displays in resource graph.
+
+```
+Resources
+| where type =~ "microsoft.network/networkinterfaces" 
+| extend privateIP = tostring(properties.ipConfigurations[0].properties["privateIPAddress"])
+| extend pubId = tostring(properties.ipConfigurations[0].properties.publicIPAddress.id)
+| extend subnetId = tostring(properties.ipConfigurations[0].properties.subnet.id)
+| join kind=leftouter (Resources | where type =~ "microsoft.network/publicipaddresses"
+	| extend fqdn = properties.dnsSettings.fqdn
+	| extend publicIP = tostring(properties.ipAddress) // May be out of date...
+	| project pubId=id, publicIP, fqdn, pubIpProperties=properties) on pubId
+| project nicId=id, nicName=name, privateIP, publicIP, fqdn, pubId, pubIpProperties
+```
+
+### List all NICs with the associuated VMs
+TO DO.
 
 ### List all devices with 2 or more IP addresses
 ```
