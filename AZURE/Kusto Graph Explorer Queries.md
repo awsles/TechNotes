@@ -1,7 +1,11 @@
 # Kusto Graph Explorer Queries
 The Resource Graph queries can be done through PowerShell or via the Azure Portal under "Resource Graph Explorer".
-See also: https://docs.microsoft.com/en-us/azure/governance/resource-graph/samples/starter?tabs=azure-cli
+See also: https://docs.microsoft.com/en-us/azure/governance/resource-graph/samples/starter?tabs=azure-cli and
+https://docs.microsoft.com/en-us/azure/governance/resource-graph/samples/advanced?tabs=azure-cli.
 
+These queries may be pasted into the Azure Resource Graph Explorer or used via **Search-AzGraph -Query $Query**.
+Note that when using Resource Graph Explorer, you will ONLY be able to see the subscriptions for which:
+(a) you have permission; and (b) which are selected in your global subscriptions filter.
 
 ### LIST ALL SUBSCRIPTIONS ###
 ```
@@ -57,6 +61,25 @@ Resources
 | project name, resourceGroup, subscriptionName, location, osType, vmSize, nicName, privateIP, publicIP, fqdn, nicProperties, pubIpProperties, vmProperties, id
 ```
 
+### List all NICS and the associated VM in a given subnet name
+To Do: Output the VNET and subnet and privateIP as well.
+
+```
+Resources 
+| where type =~ "microsoft.network/networkinterfaces" and (tostring(properties) contains 'azsu-subn-devtest-h-web-bsmart-001')
+| extend subnets = tostring(properties["subnets"])
+| extend prefixCount = array_length(properties.subnets)
+| extend nicName = name
+| extend nicId = id
+| join kind=leftouter (Resources
+	| where type =~ "microsoft.compute/virtualmachines" 
+	| extend nicId = tostring(properties.networkProfile.networkInterfaces[0].id)
+	| project VmName=name, vmId=id, vmProperties=properties, nicId) on nicId
+| join kind=leftouter (ResourceContainers | where type=~'microsoft.resources/subscriptions' 
+	| project subscriptionName=name, subscriptionId) on subscriptionId 
+| project VmName, resourceGroup, subscriptionName, location, nicName, properties
+
+```
 
 ### LIST ALL NICs with Public and Private IP addresses abd FQDNs
 Note that resource graph is NOT always up to date with dynamically assigned public IP addresses.
@@ -75,8 +98,9 @@ Resources
 | project nicId=id, nicName=name, privateIP, publicIP, fqdn, pubId, pubIpProperties
 ```
 
-### List all NICs with the associuated VMs
+### List all NICs with the associated VMs
 TO DO.
+
 
 ### List all devices with 2 or more IP addresses
 ```
@@ -119,7 +143,6 @@ Resources
 ```
 
 
-
 ### Splits IP configurations into a single row per entry
 ```
 Resources
@@ -129,31 +152,66 @@ Resources
 
 
 
-### Find Resource by IP address
+### Find NIC by private IP address
+This outputs the vmName, resourceGroup, subscriptionName, location, privateIP, privateIPType, publicIP, vnetName, subnetName, vmId, and subnetId.
+
 ```
 Resources
 | where type =~ "microsoft.network/networkinterfaces" and isnotempty(properties.ipConfigurations)
 | mv-expand ipConfiguration = properties.ipConfigurations
-| where ipConfiguration.properties.privateIPAddress =~ "10.64.193.86"
-| extend privateIPType = tostring(ipConfiguration.properties.privateIPAllocationMethod)
-| extend privateIP = tostring(ipConfiguration.properties.privateIPAddress)
-| extend publicIPid = tostring(ipConfiguration.properties.publicIPAddress.id)
+| where ipConfiguration.properties.privateIPAddress == "10.65.96.6" or ipConfiguration.properties.privateIPAddress == "10.65.105.100"
+| extend
+	privateIPType = tostring(ipConfiguration.properties.privateIPAllocationMethod),
+	privateIP = tostring(ipConfiguration.properties.privateIPAddress),
+	publicIPid = tostring(ipConfiguration.properties.publicIPAddress.id),
+	subnetId = tostring(ipConfiguration.properties.subnet.id),
+	vnetName = tostring(split(ipConfiguration.properties.subnet.id,'/',8)[0]),
+	subnetName = tostring(split(ipConfiguration.properties.subnet.id,'/',10)[0]),
+	nicId = id
 | join kind=leftouter (Resources | where type =~ "microsoft.network/publicipaddresses"
-    | extend publicIPaddr = tostring(properties.ipAddress)
-    | project publicIPid=id, publicIPaddr) on publicIPid
+    | extend publicIP = tostring(properties.ipAddress)
+    | project publicIPid=id, publicIP) on publicIPid
+| join kind=leftouter (Resources
+	| where type =~ "microsoft.compute/virtualmachines"
+	| extend
+		networkProfile = tostring(properties.networkProfile),
+		computerName = properties.osProfile.computerName
+	| mv-expand networkInterfaces = properties.networkProfile.networkInterfaces
+	| extend
+		nicId = tostring(networkInterfaces.id),
+		vmName = name,
+		vmId = id
+	| project vmName, nicId, vmId) on nicId
+| join kind=leftouter (ResourceContainers | where type=~"microsoft.resources/subscriptions" 
+	| project subscriptionName=name, subscriptionId) on subscriptionId
+| project vmName, resourceGroup, subscriptionName, location, privateIP, privateIPType, publicIP, vnetName, subnetName, vmId, subnetId
 ```
 
 ### Find VM given its network interface ID
-$KustoFindVMbyInterfaceID = 'Resources
-| where type =~ "microsoft.compute/virtualmachines" 
+
+```
+Resources
+| where type =~ "microsoft.compute/virtualmachines"
 | extend networkProfile = tostring(properties.networkProfile)
 | extend computerName = properties.osProfile.computerName
 | mv-expand networkInterfaces = properties.networkProfile.networkInterfaces
-| where networkInterfaces.id =~ "%%ID%%"'
+| where networkInterfaces.id =~ "%%ID%%"
+| join kind=leftouter (ResourceContainers | where type=~"microsoft.resources/subscriptions" 
+	| project subscriptionName=name, subscriptionId) on subscriptionId 
+```
 
+### List all Resources (or ResourceContainers) without a given tag
+
+```
+resources
+| where properties.provisioningState =~ "Succeeded" and tostring(tags) !contains '"CreatedBy"'
+| join kind=leftouter (ResourceContainers | where type =~ 'microsoft.resources/subscriptions'
+    | project subscriptionName=name, subscriptionId) on subscriptionId
+```
 
 
 ### List Azure Bastion Hosts with IP Addresses
+
 ```
 Resources
 | where type =~ "microsoft.network/networkinterfaces" and isnotempty(properties.ipConfigurations)
@@ -174,6 +232,7 @@ Resources
 
 ### List Virtuan Networks (VNets) with IP addresses
 This is crude as I need to way to count and join all instances
+
 ```
 Resources
 | where type =~ "microsoft.network/virtualnetworks"
