@@ -120,12 +120,92 @@ Resources
 ```
 Resources
 | where type =~ "microsoft.network/networkinterfaces"
+| mv-expand ipConfigurations = properties.ipConfigurations
 | extend ipCount = array_length(properties.ipConfigurations)
-| extend privateIPType = tostring(properties.ipConfigurations[0].properties["privateIPAllocationMethod"])
-| extend privateIP = tostring(properties.ipConfigurations[0].properties["privateIPAddress"])
-| extend publicIP = tostring(properties.ipConfigurations[0].properties["publicIPAddress"])
-| extend subnet = tostring(properties.ipConfigurations[0].properties.subnet["id"])
+| extend privateIPType = tostring(ipConfigurations.properties["privateIPAllocationMethod"])
+| extend privateIP = tostring(ipConfigurations.properties["privateIPAddress"])
+| extend publicIP = tostring(ipConfigurations.properties["publicIPAddress"])
+| extend subnet = tostring(ipConfigurations.properties.subnet["id"])
 ```
+
+
+### List all Network Interfaces (NICs) 
+This lists both their public and private IP addresses and associated subnet ID.
+```
+Resources
+| where type =~ "microsoft.network/networkinterfaces"
+| mv-expand ipConfigurations = properties.ipConfigurations
+| extend ipCount = array_length(properties.ipConfigurations)
+| extend privateIPType = tostring(ipConfigurations.properties["privateIPAllocationMethod"])
+| extend privateIP = tostring(ipConfigurations.properties["privateIPAddress"])
+| extend subnetId = tostring(ipConfigurations.properties.subnet["id"])
+| extend publicIPid = tostring(ipConfigurations.properties["publicIPAddress"].id)
+| extend nicId = tostring(id)
+| join kind=leftouter (ResourceContainers | where type=~'microsoft.resources/subscriptions' 
+	| project subscriptionName=name, subscriptionId) on subscriptionId 
+| join kind=leftouter (Resources  
+	| where type contains 'publicIPAddresses' and isnotempty(properties.ipAddress)
+	| extend publicIP = tostring(properties.ipAddress),
+		publicIPid = tostring(id)) on publicIPid
+| join kind=leftouter (Resources | where type == "microsoft.network/networksecuritygroups"
+	| mv-expand nics = properties.networkInterfaces
+	| extend nicId = tostring (nics.id),
+		nicNSG = name,
+		resourceGroupNSG = resourceGroup  ) on nicId
+| project subscriptionName, name, resourceGroup, location, ipCount, privateIPType, privateIP, publicIP, nicNSG, resourceGroupNSG, tags, subnetId, nicId
+```
+
+
+### List all Network Interfaces (NICs) with NSG detail
+This lists all NICs with the associated NSG, subnet, subnet NSG, 
+and their public and private IP addresses.  Very use for seeing which VMs
+are protected ny an NSG and which are not.
+
+```
+Resources
+| where type =~ "microsoft.network/networkinterfaces"
+| mv-expand ipConfigurations = properties.ipConfigurations
+| extend ipCount = array_length(properties.ipConfigurations)
+| extend privateIPType = tostring(ipConfigurations.properties["privateIPAllocationMethod"])
+| extend privateIP = tostring(ipConfigurations.properties["privateIPAddress"])
+| extend subnetId = tostring(ipConfigurations.properties.subnet["id"])
+| extend publicIPid = tostring(ipConfigurations.properties["publicIPAddress"].id)
+| extend nicId = tostring(id)
+| join kind=leftouter (ResourceContainers | where type=~'microsoft.resources/subscriptions' 
+	| project subscriptionName=name, subscriptionId) on subscriptionId 
+| join kind=leftouter (Resources  
+	| where type contains 'publicIPAddresses' and isnotempty(properties.ipAddress)
+	| extend publicIP = tostring(properties.ipAddress),
+		publicIPid = tostring(id)) on publicIPid
+| join kind=leftouter (Resources | where type == "microsoft.network/networksecuritygroups"
+	| mv-expand nics = properties.networkInterfaces
+	| extend nicId = tostring (nics.id),
+		nicNSG = name,
+		nicNSGgroup = resourceGroup  ) on nicId
+| join kind=leftouter (Resources | where type == "microsoft.network/networksecuritygroups"
+	| mv-expand subnets = properties.subnets
+	| extend subnetId = tostring(subnets.id),
+		vnetName = split(tostring(subnets.id),'/')[8],
+		subnetName = split(tostring(subnets.id),'/')[10],
+		subnetNSG = name,
+		subnetNSGgroup = resourceGroup
+	) on subnetId
+| project subscriptionName, nicName=name, resourceGroup, vnetName, subnetName, nicNSG, subnetNSG, location, ipCount, privateIPType, privateIP, publicIP, tags, subnetId, nicId
+```
+
+As there is a limit of four (4) joins ina kusto resource graph query, we can either return the subscription name or the associated VM name.
+
+```
+Resources
+| where type == "microsoft.compute/virtualmachines" and isnotempty(properties.networkProfile.networkInterfaces)
+| extend vmName = name,
+	vmResourceGroup = resourceGroup,
+	vmSize = tostring(properties.hardwareProfile.vmSize),
+	osType = tostring(properties.storageProfile.osDisk.osType),
+	nicId = tostring(properties.networkProfile.networkInterfaces[0].id)
+```
+
+
 
 ### List FQDNs
 This is usually just database servers.
@@ -139,7 +219,7 @@ Resources
 ```
 Resources  
 | where type contains 'publicIPAddresses' and isnotempty(properties.ipAddress)
-| extend publicIP = tostring(properties.ipAddress) 
+| extend publicIP = tostring(properties.ipAddress)
 ```
 
 
@@ -229,8 +309,44 @@ Resources
 | sort by privateIP asc
 ```
 
+### List all vNets and subnets 
+This lists them all with associated IP addresses (public and private) and NSGs
 
-### List Virtuan Networks (VNets) with IP addresses
+```
+resources
+| where type == "microsoft.network/virtualnetworks"
+| mv-expand subnets = properties.subnets
+| extend subnetName = subnets.name,
+	addressPrefix = subnets.properties.addressPrefix,
+	p = subnets.properties,
+	subnetId = strcat(id,'/subnets/',subnets.name)
+| join kind=leftouter (ResourceContainers | where type =~ 'microsoft.resources/subscriptions'
+    | project subscriptionName=name, subscriptionId) on subscriptionId
+| join kind=leftouter (Resources | where type == "microsoft.network/networksecuritygroups"
+	| mv-expand subnets = properties.subnets
+	| extend subnetId = tostring(subnets.id),
+		subnetNSG = name,
+		resourceGroupNSG = resourceGroup
+	) on subnetId
+| project subscriptionName, vnetName=name, subnetName, addressPrefix, resourceGroup, location, subnetNSG, resourceGroupNSG, tags, subnetId, id
+```
+
+
+### List all NSGs with associated NICs
+
+```
+Resources
+| where type == "microsoft.network/networksecuritygroups"
+| mv-expand networkInterfaces = properties.networkInterfaces
+
+Resources
+| where type == "microsoft.network/networksecuritygroups"
+| mv-expand subnets = properties.subnets
+| extend subnetId = subnets.id
+```
+
+
+### List Virtual Networks (VNets) with IP addresses
 This is crude as I need to way to count and join all instances
 
 ```
