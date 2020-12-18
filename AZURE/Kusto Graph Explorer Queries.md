@@ -103,6 +103,7 @@ TO DO.
 
 
 ### List all devices with 2 or more IP addresses
+THIS IS TERRIBLE. Use mv-expand
 ```
 Resources  
 | where type startswith 'microsoft.network' and isnotempty(properties.ipConfigurations[1])
@@ -194,15 +195,43 @@ Resources
 ```
 
 As there is a limit of four (4) joins ina kusto resource graph query, we can either return the subscription name or the associated VM name.
+The query below lists all wit VM name but without subscription name.
 
 ```
 Resources
-| where type == "microsoft.compute/virtualmachines" and isnotempty(properties.networkProfile.networkInterfaces)
-| extend vmName = name,
-	vmResourceGroup = resourceGroup,
-	vmSize = tostring(properties.hardwareProfile.vmSize),
-	osType = tostring(properties.storageProfile.osDisk.osType),
-	nicId = tostring(properties.networkProfile.networkInterfaces[0].id)
+| where type =~ "microsoft.network/networkinterfaces"
+| mv-expand ipConfigurations = properties.ipConfigurations
+| extend ipCount = array_length(properties.ipConfigurations)
+| extend privateIPType = tostring(ipConfigurations.properties["privateIPAllocationMethod"])
+| extend privateIP = tostring(ipConfigurations.properties["privateIPAddress"])
+| extend subnetId = tostring(ipConfigurations.properties.subnet["id"])
+| extend publicIPid = tostring(ipConfigurations.properties["publicIPAddress"].id)
+| extend nicId = tostring(id)
+| join kind=leftouter (Resources  
+	| where type contains 'publicIPAddresses' and isnotempty(properties.ipAddress)
+	| extend publicIP = tostring(properties.ipAddress),
+		publicIPid = tostring(id)) on publicIPid
+| join kind=leftouter (Resources | where type == "microsoft.network/networksecuritygroups"
+	| mv-expand nics = properties.networkInterfaces
+	| extend nicId = tostring (nics.id),
+		nicNSG = name,
+		nicNSGgroup = resourceGroup  ) on nicId
+| join kind=leftouter (Resources
+	| where type == "microsoft.compute/virtualmachines" and isnotempty(properties.networkProfile.networkInterfaces)
+	| extend vmName = name
+	| extend vmSize = tostring(properties.hardwareProfile.vmSize)
+	| extend osType = tostring(properties.storageProfile.osDisk.osType)
+	| mv-expand nics = properties.networkProfile.networkInterfaces
+	| extend nicId = tostring (nics.id) ) on nicId
+| join kind=leftouter (Resources | where type == "microsoft.network/networksecuritygroups"
+	| mv-expand subnets = properties.subnets
+	| extend subnetId = tostring(subnets.id),
+		vnetName = split(tostring(subnets.id),'/')[8],
+		subnetName = split(tostring(subnets.id),'/')[10],
+		subnetNSG = name,
+		subnetNSGgroup = resourceGroup
+	) on subnetId
+| project subscriptionId, nicName=name, resourceGroup, vmName, vmSize, osType, vnetName, subnetName, nicNSG, subnetNSG, location, ipCount, privateIPType, privateIP, publicIP, tags, subnetId, nicId
 ```
 
 
