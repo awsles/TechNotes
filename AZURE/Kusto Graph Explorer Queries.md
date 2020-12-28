@@ -11,7 +11,7 @@ Note that when using Resource Graph Explorer, you will ONLY be able to see the s
 ```
 ResourceContainers
 | where type =~ 'microsoft.resources/subscriptions'
-| project SubName=name, subscriptionId
+| project subscriptionName=name, subscriptionId
 ```
 
 ### LIST ALL VMs (simple) ###
@@ -21,6 +21,18 @@ Resources
 | project subscriptionId, name, resourceGroup, location, properties.hardwareProfile.vmSize, 
 		properties.storageProfile.osDisk.osType, properties.host.id, tags
 | limit 25
+```
+
+### List all VMs with names that might indicate a database is present
+```
+resources
+| where type == "microsoft.compute/virtualmachines"
+	and (name contains "sql"
+	or name contains "db"
+	or name contains "database")
+| join kind=leftouter (ResourceContainers | where type=~ 'microsoft.resources/subscriptions' 
+       | project subscriptionName=name, subscriptionId) on subscriptionId
+| project subscriptionId, subscriptionName, name, resourceGroup, location, properties, tags, id
 ```
 
 ### List VMs with detail (excluding IP info)
@@ -44,10 +56,11 @@ Resources
 | where type == "microsoft.compute/virtualmachines" and isnotempty(properties.networkProfile.networkInterfaces)
 | extend vmSize = tostring(properties.hardwareProfile.vmSize)
 | extend osType = tostring(properties.storageProfile.osDisk.osType)
-| extend nicId = tostring(properties.networkProfile.networkInterfaces[0].id)
 | extend vmProperties = tostring(properties)
+| mv-expand nics = properties.networkProfile.networkInterfaces
+| extend nicId = tostring(nics.id)
 | join kind=leftouter (Resources
-	| where type =~ "microsoft.network/networkinterfaces" 
+	| where type =~ "microsoft.network/networkinterfaces"
 	| extend privateIP = tostring(properties.ipConfigurations[0].properties["privateIPAddress"])
 	| extend pubId = tostring(properties.ipConfigurations[0].properties.publicIPAddress.id)
 	| extend subnetId = tostring(properties.ipConfigurations[0].properties.subnet.id)
@@ -58,7 +71,24 @@ Resources
 	| project nicId=id, nicName=name, privateIP, publicIP, fqdn, pubId, nicProperties=properties, pubIpProperties) on nicId
 | join kind=leftouter (ResourceContainers | where type=~'microsoft.resources/subscriptions' 
 	| project subscriptionName=name, subscriptionId) on subscriptionId 
-| project name, resourceGroup, subscriptionName, location, osType, vmSize, nicName, privateIP, publicIP, fqdn, nicProperties, pubIpProperties, vmProperties, id
+| project name, resourceGroup, subscriptionName, location, osType, vmSize, nicName, privateIP, publicIP, fqdn, nicProperties, pubIpProperties, vmProperties, nicId, id
+```
+
+### List NSGs by Inbound Destinations and Ports
+Excludes defaultSecurityRules.
+
+```
+resources
+| where type =~ "microsoft.network/networksecuritygroups"
+| mv-expand rule = properties.securityRules
+| where rule.properties.access =~ "Allow" and rule.properties.direction =~ "Inbound" 
+| extend ruleName = rule.name,
+	priority = rule.properties.priority,
+	dstAddressPrefix = rule.properties.destinationAddressPrefix,
+	dstAddresses = rule.properties.destinationAddressPrefixes,
+	dstPortRange = rule.properties.destinationPortRange,
+	dstPortRanges = rule.properties.destinationPortRanges
+| project name, resourceGroup, location, subscriptionId, priority, dstAddressPrefix, dstAddresses, dstPortRange, dstPortRanges, rule, properties, tags
 ```
 
 ### List all NICS and the associated VM in a given subnet name
