@@ -7,6 +7,12 @@ These queries may be pasted into the Azure Resource Graph Explorer or used via *
 Note that when using Resource Graph Explorer, you will ONLY be able to see the subscriptions for which:
 (a) you have permission; and (b) which are selected in your global subscriptions filter.
 
+#### Additional Resources
+
+* https://github.com/kobusd/Azure-Resource-Graph
+
+# Queries
+
 ### LIST ALL SUBSCRIPTIONS ###
 ```
 ResourceContainers
