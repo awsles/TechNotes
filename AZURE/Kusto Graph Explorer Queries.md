@@ -7,6 +7,11 @@ These queries may be pasted into the Azure Resource Graph Explorer or used via *
 Note that when using Resource Graph Explorer, you will ONLY be able to see the subscriptions for which:
 (a) you have permission; and (b) which are selected in your global subscriptions filter.
 
+To invoke a Kusto Query in PowerShell:
+
+```Search-AzGraph -First 1000 -Query $Query```
+
+
 #### Additional Resources
 
 * https://github.com/kobusd/Azure-Resource-Graph
@@ -196,7 +201,11 @@ Resources
 ### List all Network Interfaces (NICs) with NSG detail
 This lists all NICs with the associated NSG, subnet, subnet NSG, 
 and their public and private IP addresses.  Very use for seeing which VMs
-are protected ny an NSG and which are not.
+are protected by an NSG and which are not.
+
+NOTE: This only works in the Azure ARM Portal. To use in PowerShell, you MUST ask Microsoft
+to increase your mv-expand and join limits!
+
 
 ```
 Resources
@@ -208,30 +217,30 @@ Resources
 | extend subnetId = tostring(ipConfigurations.properties.subnet["id"])
 | extend publicIPid = tostring(ipConfigurations.properties["publicIPAddress"].id)
 | extend nicId = tostring(id)
-| join kind=leftouter (ResourceContainers | where type=~'microsoft.resources/subscriptions' 
+| join kind=leftouter (ResourceContainers | where type=~ "microsoft.resources/subscriptions" 
 	| project subscriptionName=name, subscriptionId) on subscriptionId 
 | join kind=leftouter (Resources  
-	| where type contains 'publicIPAddresses' and isnotempty(properties.ipAddress)
+	| where type contains "publicIPAddresses" and isnotempty(properties.ipAddress)
 	| extend publicIP = tostring(properties.ipAddress),
 		publicIPid = tostring(id)) on publicIPid
-| join kind=leftouter (Resources | where type == "microsoft.network/networksecuritygroups"
+| join kind=leftouter (Resources | where type =~ "microsoft.network/networksecuritygroups"
 	| mv-expand nics = properties.networkInterfaces
 	| extend nicId = tostring (nics.id),
 		nicNSG = name,
 		nicNSGgroup = resourceGroup  ) on nicId
-| join kind=leftouter (Resources | where type == "microsoft.network/networksecuritygroups"
+| join kind=leftouter (Resources | where type =~ "microsoft.network/networksecuritygroups"
 	| mv-expand subnets = properties.subnets
 	| extend subnetId = tostring(subnets.id),
-		vnetName = split(tostring(subnets.id),'/')[8],
-		subnetName = split(tostring(subnets.id),'/')[10],
+		vnetName = split(tostring(subnets.id),"/")[8],
+		subnetName = split(tostring(subnets.id),"/")[10],
 		subnetNSG = name,
 		subnetNSGgroup = resourceGroup
 	) on subnetId
 | project subscriptionName, nicName=name, resourceGroup, vnetName, subnetName, nicNSG, subnetNSG, location, ipCount, privateIPType, privateIP, publicIP, tags, subnetId, nicId
 ```
 
-As there is a limit of four (4) joins ina kusto resource graph query, we can either return the subscription name or the associated VM name.
-The query below lists all wit VM name but without subscription name.
+The query below lists all with VM name with subscription name.
+This query requires a quota increase from Microsoft.
 
 ```
 Resources
@@ -243,31 +252,33 @@ Resources
 | extend subnetId = tostring(ipConfigurations.properties.subnet["id"])
 | extend publicIPid = tostring(ipConfigurations.properties["publicIPAddress"].id)
 | extend nicId = tostring(id)
+| join kind=leftouter (ResourceContainers | where type=~ "microsoft.resources/subscriptions" 
+	| project subscriptionName=name, subscriptionId) on subscriptionId 
 | join kind=leftouter (Resources  
-	| where type contains 'publicIPAddresses' and isnotempty(properties.ipAddress)
+	| where type contains "publicIPAddresses" and isnotempty(properties.ipAddress)
 	| extend publicIP = tostring(properties.ipAddress),
 		publicIPid = tostring(id)) on publicIPid
-| join kind=leftouter (Resources | where type == "microsoft.network/networksecuritygroups"
+| join kind=leftouter (Resources | where type =~ "microsoft.network/networksecuritygroups"
 	| mv-expand nics = properties.networkInterfaces
 	| extend nicId = tostring (nics.id),
 		nicNSG = name,
 		nicNSGgroup = resourceGroup  ) on nicId
 | join kind=leftouter (Resources
-	| where type == "microsoft.compute/virtualmachines" and isnotempty(properties.networkProfile.networkInterfaces)
+	| where type =~ "microsoft.compute/virtualmachines" and isnotempty(properties.networkProfile.networkInterfaces)
 	| extend vmName = name
 	| extend vmSize = tostring(properties.hardwareProfile.vmSize)
 	| extend osType = tostring(properties.storageProfile.osDisk.osType)
 	| mv-expand nics = properties.networkProfile.networkInterfaces
 	| extend nicId = tostring (nics.id) ) on nicId
-| join kind=leftouter (Resources | where type == "microsoft.network/networksecuritygroups"
+| join kind=leftouter (Resources | where type =~ "microsoft.network/networksecuritygroups"
 	| mv-expand subnets = properties.subnets
 	| extend subnetId = tostring(subnets.id),
-		vnetName = split(tostring(subnets.id),'/')[8],
-		subnetName = split(tostring(subnets.id),'/')[10],
+		vnetName = split(tostring(subnets.id),"/")[8],
+		subnetName = split(tostring(subnets.id),"/")[10],
 		subnetNSG = name,
 		subnetNSGgroup = resourceGroup
 	) on subnetId
-| project subscriptionId, nicName=name, resourceGroup, vmName, vmSize, osType, vnetName, subnetName, nicNSG, subnetNSG, location, ipCount, privateIPType, privateIP, publicIP, tags, subnetId, nicId
+| project subscriptionId, subscriptionName, nicName=name, resourceGroup, vmName, vmSize, osType, vnetName, subnetName, nicNSG, subnetNSG, location, ipCount, privateIPType, privateIP, publicIP, tags, subnetId, nicId
 ```
 
 
