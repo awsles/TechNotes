@@ -11,6 +11,15 @@ To invoke a Kusto Query in PowerShell:
 
 ```Search-AzGraph -First 1000 -Query $Query```
 
+#### Important Tenant Limitations
+Microsoft imposes a tenant-wide Kusto JOIN and mv-expand limits of 3. 
+These can be increased to 5 joins and 4 mv-expands for your tenant, in order to support more complex resource graph queries
+(which are needed for some of the examples below). The quota change applies to the underlying REST API,
+which is used by everything EXCEPT for the Azure Resource Graph Explorer, which has an anomalous limit of 4 joins and 3 mv-expands.
+However, you can build and save the query in the portal, and run it under Azure Resource Graph queries (which does use the REST API).
+
+The document (https://docs.microsoft.com/en-us/azure/governance/resource-graph/concepts/query-language#supported-tabulartop-level-operators)
+does state the max joins allowed is 3, however, production team overrides the limit to 4 for queries used in Azure Portal.
 
 #### Additional Resources
 
