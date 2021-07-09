@@ -69,6 +69,8 @@ does state the max joins allowed is 3, however, production team overrides the li
 * https://github.com/kobusd/Azure-Resource-Graph
 
 # Queries
+These queries are in no particular order as this list often serves as a notepad for
+tracking useful queries and variations thereof.  Contributions are welcome!
 
 ### LIST ALL SUBSCRIPTIONS ###
 ```
