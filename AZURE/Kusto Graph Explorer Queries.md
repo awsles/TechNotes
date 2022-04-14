@@ -251,6 +251,29 @@ Resources
 | project subscriptionName, name, resourceGroup, location, ipCount, privateIPType, privateIP, publicIP, nicNSG, resourceGroupNSG, tags, subnetId, nicId
 ```
 
+### List all NSG security rules in one query 
+Courtesy of https://blog.blksthl.com/2020/10/02/list-all-nsg-security-rules-in-one-query-using-azure-resource-graph/
+
+```
+Resources
+| where type =~ "microsoft.network/networksecuritygroups"
+| join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project SubcriptionName=name, subscriptionId) on subscriptionId
+| where resourceGroup == 'production' or resourceGroup == 'testing'
+// Only if you don't want to see all, add more resourceGroups as needed: or resourceGroup == 'xxx'
+| mv-expand rules=properties.securityRules
+| extend direction = tostring(rules.properties.direction)
+| extend priority = toint(rules.properties.priority)
+| extend description = rules.properties.description
+| extend destprefix = rules.properties.destinationAddressPrefix
+| extend destport = rules.properties.destinationPortRange
+| extend sourceprefix = rules.properties.sourceAddressPrefix
+| extend sourceport = rules.properties.sourcePortRange
+| extend subnet_name = split((split(tostring(properties.subnets), '/'))[10], '"')[0]
+//| where destprefix == '*'
+| project SubcriptionName, resourceGroup, subnet_name, name, direction, priority, destprefix, destport, sourceprefix, sourceport, description //, subscriptionId, rules.properties
+| sort by SubcriptionName, resourceGroup asc, name, direction asc, priority asc
+```
+
 
 ### List all Network Interfaces (NICs) with NSG detail
 This lists all NICs with the associated NSG, subnet, subnet NSG, 
